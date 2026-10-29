@@ -100,9 +100,17 @@ input[type=text],input[type=number]{width:100%;padding:12px;border:1px solid var
    ============================================================ */
 // วาง Firebase config จาก Firebase console (Project settings → Your apps → Web app)
 // ถ้าเป็น null = โหมดทดลอง ข้อมูลอยู่ในเบราว์เซอร์นี้เท่านั้น (เปิด 2 แท็บเพื่อจำลองมือถือ + Tablet ได้)
-const FIREBASE_CONFIG = null;
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCDI511AcYy9jknZmD4Ap1tgkwRhqjE8dQ",
+  authDomain: "iv-loading-alert.firebaseapp.com",
+  projectId: "iv-loading-alert",
+  storageBucket: "iv-loading-alert.firebasestorage.app",
+  messagingSenderId: "981753193283",
+  appId: "1:981753193283:web:667d4ca0ad4d1b695405f6",
+  measurementId: "G-Z55KKPTV90"
+};
 // Web Push certificate (Firebase console → Project settings → Cloud Messaging → Web configuration → Key pair)
-const VAPID_KEY = '';
+const VD_KEY = '';
 
 const FLUIDS   = ['NSS', 'RL', 'Acetar'];   // ปุ่มชนิดสารน้ำ (มีปุ่ม "อื่นๆ" ให้อัตโนมัติ)
 const VOLUMES  = [100, 250, 500, 1000];     // ปุ่ม ml
