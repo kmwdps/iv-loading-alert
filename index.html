@@ -100,20 +100,13 @@ input[type=text],input[type=number]{width:100%;padding:12px;border:1px solid var
    ============================================================ */
 // วาง Firebase config จาก Firebase console (Project settings → Your apps → Web app)
 // ถ้าเป็น null = โหมดทดลอง ข้อมูลอยู่ในเบราว์เซอร์นี้เท่านั้น (เปิด 2 แท็บเพื่อจำลองมือถือ + Tablet ได้)
-const FIREBASE_CONFIG = {
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "..."
-};
+const FIREBASE_CONFIG = null;
 // Web Push certificate (Firebase console → Project settings → Cloud Messaging → Web configuration → Key pair)
-const VAPID_KEY = 'BMY7DCsg21hN2b0cBWl7ASDqF14fPeOfz-4whAIR3w63BBbfWPGx9tX7Fy3rl0ITVQ3jxYwRiJutDXRe6_der1c';
+const VAPID_KEY = '';
 
-const FLUIDS   = ['NSS', 'RLS', 'Acetar'];   // ปุ่มชนิดสารน้ำ (มีปุ่ม "อื่นๆ" ให้อัตโนมัติ)
+const FLUIDS   = ['NSS', 'RL', 'Acetar'];   // ปุ่มชนิดสารน้ำ (มีปุ่ม "อื่นๆ" ให้อัตโนมัติ)
 const VOLUMES  = [100, 250, 500, 1000];     // ปุ่ม ml
-const MINUTES  = [15, 30, 60];         // ปุ่มเวลา (นาที)
+const MINUTES  = [15, 30, 60, 120];         // ปุ่มเวลา (นาที)
 const ADD_MINS = [5, 10, 15, 30];           // ปุ่มเพิ่มเวลา
 const SOON_MIN = 5;                         // เปลี่ยนการ์ดเป็นสีเหลืองเมื่อเหลือกี่นาที (ไม่มีเสียง)
 const BEEP_EVERY_SEC = 5;                   // เสียงเตือนซ้ำทุกกี่วินาทีจนกว่าจะกด Check
@@ -180,7 +173,13 @@ async function firebaseStore(){
   const app = appM.initializeApp(FIREBASE_CONFIG);
   const auth = authM.getAuth(app);
   try{ await auth.authStateReady(); if(!auth.currentUser) await authM.signInAnonymously(auth); }
-  catch(e){ console.warn('auth', e); }
+  catch(e){
+    console.warn('auth', e);
+    const c = String(e && e.code || '');
+    if(c.includes('api-key')) throw new Error('API key ใน FIREBASE_CONFIG ไม่ถูกต้อง');
+    if(c.includes('unauthorized-domain')) throw new Error('ยังไม่ได้เพิ่มโดเมนนี้ใน Authorized domains');
+    if(c.includes('operation-not-allowed') || c.includes('admin-restricted')) throw new Error('ยังไม่ได้เปิด Anonymous sign-in');
+  }
   let db;
   try{ db = fs.initializeFirestore(app, { localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() }) }); }
   catch(e){ console.warn('cache', e); db = fs.getFirestore(app); }
@@ -655,7 +654,11 @@ if('serviceWorker' in navigator){
   render();
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js', { scope:'./' }).catch(e => console.warn('sw', e));
   try{ store = FIREBASE_CONFIG ? await firebaseStore() : localStore(); }
-  catch(err){ console.error(err); setConn('error'); toast('เชื่อมต่อไม่ได้ — ตรวจอินเทอร์เน็ตแล้วรีเฟรช'); return; }
+  catch(err){
+    console.error(err); setConn('error');
+    $('#app').innerHTML = `<div class="panel hint"><b>⚠ เชื่อมต่อ Firebase ไม่ได้</b><br>${esc(err && err.message || err)}<br><span class="note">ตรวจการตั้งค่า แล้วรีเฟรช</span></div>`;
+    return;
+  }
   store.subscribe(list => { items = list; loaded = true; renderMain(); applyPending(); });
   store.subscribeMeta(h => { heartbeat = h; renderHeartbeat(); });
   if(role) refreshPush();
