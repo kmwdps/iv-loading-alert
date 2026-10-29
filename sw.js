@@ -13,8 +13,8 @@ self.addEventListener('push', e => {
   const title = d.title || '⏰ IV ครบเวลา';
   const opts = {
     body: d.body || '',
-    tag: id ? 'ivl-' + id : 'ivl-general',
-    renotify: true,
+    // tag ไม่ซ้ำทุกครั้ง → iPhone ถือเป็นแจ้งเตือนใหม่และมีเสียงทุกรอบ
+    tag: 'ivl-' + (id || 'general') + '-' + Date.now(),
     requireInteraction: true,
     icon: 'icon-192.png',
     badge: 'icon-192.png',
@@ -22,7 +22,14 @@ self.addEventListener('push', e => {
     data: { id: id },
     actions: id ? [{ action: 'check', title: '✓ Check แล้ว' }] : []
   };
-  e.waitUntil(self.registration.showNotification(title, opts));
+  e.waitUntil((async () => {
+    // ลบแจ้งเตือนเก่าของเคสเดียวกัน ให้เหลืออันล่าสุดอันเดียว ไม่กองเต็มจอ
+    if (id) {
+      const old = await self.registration.getNotifications();
+      old.forEach(n => { if (n.data && n.data.id === id) n.close(); });
+    }
+    await self.registration.showNotification(title, opts);
+  })());
 });
 
 self.addEventListener('notificationclick', e => {
