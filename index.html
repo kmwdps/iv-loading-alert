@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1c2430">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="IV Load">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>IV Load Alert</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f4f7;--card:#fff;--ink:#1c2430;--muted:#6a7482;--line:#dde2e8;
+  --count:#2f6fde;--soon:#c98a00;--due:#d93025;--ok:#1e8e3e;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:Sarabun,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:17px;padding-bottom:80px}
+button,input{font-family:inherit;font-size:inherit}
+header{position:sticky;top:0;z-index:20;background:#1c2430;color:#fff;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+header h1{font-size:18px;margin:0 auto 0 0;white-space:nowrap}
+.pill{font-size:13px;padding:5px 10px;border-radius:99px;background:#3a4556;color:#fff;border:0;cursor:pointer;white-space:nowrap}
+.pill.ok{background:#1e8e3e}.pill.warn{background:#b07800}.pill.bad{background:#d93025}
+main{padding:12px;max-width:1400px;margin:0 auto}
+.panel{background:#fff;border-radius:14px;padding:14px;border:1px solid var(--line);max-width:640px;margin:0 auto 12px}
+.panel h2{margin:0 0 10px;font-size:19px}
+label.l{display:block;font-weight:700;margin:12px 0 6px}
+label.l:first-child{margin-top:0}
+input[type=text],input[type=number]{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:18px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-width:64px;padding:11px 14px;border-radius:10px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-weight:600}
+.chip.on{background:#1c2430;color:#fff;border-color:#1c2430}
+.other{margin-top:8px}
+.calc{margin-top:12px;background:#eef4ff;border-radius:10px;padding:10px 12px;font-weight:700;font-size:18px}
+.btn{padding:11px 14px;border-radius:10px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-weight:600}
+.btn.big{width:100%;margin-top:14px;padding:15px;font-size:19px;background:#1c2430;color:#fff;border:0}
+.btn.primary{background:var(--c,#1c2430);color:#fff;border-color:transparent;flex:1}
+.btn.danger{color:var(--due);border-color:#f2c4c0}
+.btn.armed{background:var(--due);color:#fff;border-color:var(--due)}
+.btn.ghost{border-color:transparent;color:var(--muted)}
+.btn.sm{padding:8px 12px;font-size:15px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.sum{display:flex;gap:8px;margin-bottom:10px;align-items:stretch;flex-wrap:wrap}
+.sum div{background:#fff;border-radius:12px;padding:8px 14px;border:1px solid var(--line);text-align:center;min-width:110px}
+.sum b{display:block;font-size:28px;line-height:1.1}
+.sum small{color:var(--muted)}
+.sum .add{margin-left:auto;align-self:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.card{background:#fff;border-radius:14px;padding:12px 14px;border:1px solid var(--line);border-left:10px solid var(--c)}
+.card.hl{outline:3px solid #2f6fde}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.pt{font-size:26px;font-weight:700;line-height:1.2;word-break:break-word}
+.badge{font-size:14px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--c);color:#fff;white-space:nowrap;margin-top:4px}
+.fl{font-size:18px}
+.tt{font-size:19px;font-weight:700;color:var(--c);margin-top:4px}
+.meta{font-size:14px;color:var(--muted)}
+.card .row{margin-top:10px}
+.s-count{--c:var(--count)}.s-soon{--c:var(--soon)}.s-due{--c:var(--due)}.s-checked{--c:var(--ok)}
+.flash{animation:fl 1s infinite}
+@keyframes fl{50%{background:#ffe9e7;box-shadow:0 0 0 4px var(--due)}}
+.empty{text-align:center;color:var(--muted);padding:28px 10px}
+.sect{display:flex;align-items:center;gap:8px;margin:18px auto 8px;max-width:640px}
+.sect h3{margin:0;font-size:18px;flex:1}
+.wide{max-width:none}
+#banner{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--due);color:#fff;padding:14px 12px;padding-bottom:max(14px,env(safe-area-inset-bottom));font-size:19px;font-weight:700;text-align:center;display:none;cursor:pointer}
+#unlock{position:fixed;left:0;right:0;bottom:0;z-index:29;background:#b07800;color:#fff;padding:12px;text-align:center;font-weight:700;display:none}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:none;align-items:flex-end;justify-content:center}
+#modal.show{display:flex}
+.mb{background:#fff;width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+@media(min-width:700px){#modal{align-items:center}.mb{border-radius:18px}}
+.mb h2{margin:0 0 10px;font-size:20px}
+.note{font-size:14px;color:var(--muted)}
+.hint{background:#fff7e0;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:15px}
+.roles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.roles .btn{padding:22px 10px;font-size:19px}
+#toast{position:fixed;top:76px;left:50%;transform:translateX(-50%);background:#1c2430;color:#fff;padding:10px 16px;border-radius:10px;z-index:50;display:none;max-width:90vw;text-align:center}
+.log{font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding:4px 0}
+@media(max-width:480px){.pt{font-size:23px}header h1{font-size:16px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>💧 IV Load Alert</h1>
+  <span class="pill" id="connPill">กำลังเชื่อมต่อ…</span>
+  <span class="pill" id="hbPill" style="display:none"></span>
+  <button class="pill" id="pushPill" data-act="push" style="display:none"></button>
+  <button class="pill" id="userPill" data-act="settings">⚙</button>
+</header>
+<main id="app"></main>
+<div id="unlock">🔇 แตะที่ใดก็ได้บนหน้าจอเพื่อเปิดเสียงเตือน</div>
+<div id="banner" data-act="gotoDue"></div>
+<div id="modal"><div class="mb" id="mb"></div></div>
+<div id="toast"></div>
+
+<script type="module">
+/* ============================================================
+   ตั้งค่า — แก้เฉพาะส่วนนี้
+   ============================================================ */
+// วาง Firebase config จาก Firebase console (Project settings → Your apps → Web app)
+// ถ้าเป็น null = โหมดทดลอง ข้อมูลอยู่ในเบราว์เซอร์นี้เท่านั้น (เปิด 2 แท็บเพื่อจำลองมือถือ + Tablet ได้)
+const FIREBASE_CONFIG = null;
+// Web Push certificate (Firebase console → Project settings → Cloud Messaging → Web configuration → Key pair)
+const VAPID_KEY = '';
+
+const FLUIDS   = ['NSS', 'RL', 'Acetar'];   // ปุ่มชนิดสารน้ำ (มีปุ่ม "อื่นๆ" ให้อัตโนมัติ)
+const VOLUMES  = [100, 250, 500, 1000];     // ปุ่ม ml
+const MINUTES  = [15, 30, 60, 120];         // ปุ่มเวลา (นาที)
+const ADD_MINS = [5, 10, 15, 30];           // ปุ่มเพิ่มเวลา
+const SOON_MIN = 5;                         // เปลี่ยนการ์ดเป็นสีเหลืองเมื่อเหลือกี่นาที (ไม่มีเสียง)
+const BEEP_EVERY_SEC = 5;                   // เสียงเตือนซ้ำทุกกี่วินาทีจนกว่าจะกด Check
+const HEARTBEAT_STALE_MIN = 12;             // ถ้าสคริปต์ส่งแจ้งเตือนเงียบเกินนี้ Tablet จะขึ้นเตือนสีแดง
+
+/* ============================================================ */
+const COL = 'ivloads', DEV = 'devices', META = 'meta';
+const FB = 'https://www.gstatic.com/firebasejs/10.12.2/';
+const LBL = { count:'กำลังให้', soon:'ใกล้ครบ', due:'ครบเวลา!', checked:'Check แล้ว' };
+const ORDER = { due:0, soon:1, count:2, checked:3 };
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const fmtTime = ms => { if(!ms) return '-'; const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtDur = ms => { const s = Math.max(0, Math.floor(Math.abs(ms) / 1000)); const m = Math.floor(s / 60);
+  return m >= 60 ? `${Math.floor(m/60)} ชม. ${m%60} นาที` : `${m}:${pad(s%60)}`; };
+const norm = s => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : v; }catch{ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, v); }catch{} },
+  del(k){ try{ localStorage.removeItem(k); }catch{} }
+};
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.style.display = 'block'; clearTimeout(toast._t); toast._t = setTimeout(() => t.style.display = 'none', 2600); }
+
+/* ---------------- state ---------------- */
+let role = LS.get('ivl_role', '');          // 'nurse' | 'tablet'
+let me = LS.get('ivl_name', '');
+let deviceId = LS.get('ivl_dev', '');
+if(!deviceId){ deviceId = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); LS.set('ivl_dev', deviceId); }
+let store = null, items = [], loaded = false, heartbeat = undefined;
+let conn = 'connecting', pushState = 'off';
+let showAll = LS.get('ivl_showAll', '0') === '1';
+let armedDel = null, highlight = null, lastSig = '';
+let pendingCheck = null, pendingFocus = null;
+let sel = { fluid:'', vol:'', mins:'', nurse:'' };
+let actx = null, soundOn = false, lastBeep = 0, wakeLock = null;
+
+/* ---------------- stores ---------------- */
+function localStore(){
+  const KEY = 'ivl_demo_items'; let cb = () => {};
+  const read = () => { try{ return JSON.parse(localStorage.getItem(KEY)) || []; }catch{ return []; } };
+  const emit = () => cb(read().filter(x => x.status === 'active'));
+  const write = a => { LS.set(KEY, JSON.stringify(a)); emit(); };
+  window.addEventListener('storage', e => { if(e.key === KEY) emit(); });
+  return {
+    mode:'local',
+    subscribe(f){ cb = f; setConn('local'); emit(); },
+    subscribeMeta(){},
+    async add(it){ const a = read(); a.push({ ...it, id:'L' + Date.now() + Math.random().toString(36).slice(2, 6) }); write(a); },
+    async update(id, patch, log){ const a = read(); const it = a.find(x => x.id === id); if(!it) return;
+      Object.assign(it, patch); if(log) (it.log = it.log || []).push(log); write(a); },
+    async saveDevice(){},
+    clear(){ LS.del(KEY); emit(); }
+  };
+}
+
+async function firebaseStore(){
+  const [appM, authM, fs] = await Promise.all([
+    import(FB + 'firebase-app.js'), import(FB + 'firebase-auth.js'), import(FB + 'firebase-firestore.js')
+  ]);
+  const app = appM.initializeApp(FIREBASE_CONFIG);
+  const auth = authM.getAuth(app);
+  try{ await auth.authStateReady(); if(!auth.currentUser) await authM.signInAnonymously(auth); }
+  catch(e){ console.warn('auth', e); }
+  let db;
+  try{ db = fs.initializeFirestore(app, { localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() }) }); }
+  catch(e){ console.warn('cache', e); db = fs.getFirestore(app); }
+  const col = fs.collection(db, COL);
+  return {
+    mode:'firebase', app,
+    subscribe(f){
+      fs.onSnapshot(fs.query(col, fs.where('status', '==', 'active')), { includeMetadataChanges:true },
+        s => { setConn(s.metadata.fromCache ? 'cache' : 'online'); f(s.docs.map(d => ({ id:d.id, ...d.data() }))); },
+        e => { console.error(e); setConn('error'); });
+    },
+    subscribeMeta(f){ fs.onSnapshot(fs.doc(db, META, 'heartbeat'), s => f(s.exists() ? s.data() : null), e => console.warn('meta', e)); },
+    async add(it){ await fs.addDoc(col, it); },
+    async update(id, patch, log){ const p = { ...patch }; if(log) p.log = fs.arrayUnion(log); await fs.updateDoc(fs.doc(db, COL, id), p); },
+    async saveDevice(d){ await fs.setDoc(fs.doc(db, DEV, deviceId), d, { merge:true }); }
+  };
+}
+
+function setConn(s){ conn = s; renderHeader(); }
+
+/* ---------------- push (FCM) ---------------- */
+let msgMod = null;
+async function setupPush(){
+  if(!store || store.mode !== 'firebase' || !VAPID_KEY) return 'off';
+  if(isIOS() && !isStandalone()) return 'ios-install';
+  if(!('Notification' in window) || !('serviceWorker' in navigator)) return 'unsupported';
+  try{
+    msgMod = msgMod || await import(FB + 'firebase-messaging.js');
+    if(!(await msgMod.isSupported())) return 'unsupported';
+    if(Notification.permission === 'denied') return 'denied';
+    if(Notification.permission !== 'granted') return 'default';
+    const reg = await navigator.serviceWorker.register('./sw.js', { scope:'./' });
+    await navigator.serviceWorker.ready;
+    const token = await msgMod.getToken(msgMod.getMessaging(store.app), { vapidKey:VAPID_KEY, serviceWorkerRegistration:reg });
+    if(!token) return 'error';
+    await store.saveDevice({ token, name: role === 'tablet' ? 'Tablet กลาง' : me, role, ua: navigator.userAgent.slice(0, 150), updatedAt: Date.now() });
+    return 'on';
+  }catch(e){ console.error('push', e); return 'error'; }
+}
+async function refreshPush(){ pushState = await setupPush(); renderHeader(); if(role === 'nurse') renderMain(); }
+function enablePushClick(){
+  if(!store || store.mode !== 'firebase'){ toast('โหมดทดลอง: ยังไม่มีแจ้งเตือนเข้ามือถือ'); return; }
+  if(!VAPID_KEY){ toast('ยังไม่ได้ใส่ VAPID_KEY ในไฟล์'); return; }
+  if(isIOS() && !isStandalone()){ iosHelp(); return; }
+  if(!('Notification' in window)){ toast('เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน'); return; }
+  if(Notification.permission === 'denied'){ toast('การแจ้งเตือนถูกบล็อก — เปิดใน Settings ของเบราว์เซอร์/มือถือ'); return; }
+  // เรียก requestPermission ตรงใน click handler (iOS บังคับ)
+  Notification.requestPermission().then(refreshPush).catch(e => { console.error(e); toast('เปิดการแจ้งเตือนไม่สำเร็จ'); });
+}
+function iosHelp(){
+  openModal(`<h2>iPhone: ต้องติดตั้งเป็นแอปก่อน</h2>
+    <ol style="line-height:1.8;padding-left:20px">
+      <li>เปิดหน้านี้ใน <b>Safari</b></li>
+      <li>กดปุ่ม <b>แชร์</b> (สี่เหลี่ยมมีลูกศรขึ้น)</li>
+      <li>เลือก <b>Add to Home Screen / เพิ่มไปยังหน้าจอโฮม</b></li>
+      <li>เปิดแอป <b>IV Load</b> จากหน้าจอโฮม แล้วกด "เปิดแจ้งเตือน" อีกครั้ง</li>
+    </ol>
+    <p class="note">ต้องใช้ iOS 16.4 ขึ้นไป</p>
+    <button class="btn big" data-act="close">เข้าใจแล้ว</button>`);
+}
+
+/* ---------------- logic ---------------- */
+function st(it, now){
+  if(it.checkedAt) return 'checked';
+  if(now >= it.dueAt) return 'due';
+  if(it.dueAt - now <= SOON_MIN * 60000) return 'soon';
+  return 'count';
+}
+const isMine = it => (it.createdByDevice && it.createdByDevice === deviceId) || norm(it.createdBy) === norm(me);
+function sorted(list, now){
+  return list.map(it => ({ it, s: st(it, now) }))
+    .sort((a, b) => (ORDER[a.s] - ORDER[b.s]) || (a.s === 'checked' ? b.it.checkedAt - a.it.checkedAt : a.it.dueAt - b.it.dueAt));
+}
+function ttText(it, s, now){
+  if(s === 'count' || s === 'soon') return `เหลือ ${fmtDur(it.dueAt - now)} • ครบ ${fmtTime(it.dueAt)}`;
+  if(s === 'due') return `ครบแล้ว • เลยมา ${fmtDur(now - it.dueAt)}`;
+  return `โดย ${esc(it.checkedBy || '-')} • ${fmtTime(it.checkedAt)}`;
+}
+function sigOf(now){
+  return items.map(it => it.id + st(it, now) + it.dueAt + (it.checkedAt || 0)).join('|')
+    + '#' + (armedDel ? armedDel.id : '') + '#' + highlight + '#' + showAll;
+}
+
+/* ---------------- render ---------------- */
+function renderHeader(){
+  const c = $('#connPill');
+  const m = { connecting:['กำลังเชื่อมต่อ…',''], local:['โหมดทดลอง','warn'], online:['ออนไลน์','ok'],
+              cache:['ออฟไลน์','bad'], error:['เชื่อมต่อผิดพลาด','bad'] }[conn] || [conn, ''];
+  c.textContent = m[0]; c.className = 'pill ' + m[1];
+  $('#userPill').textContent = role === 'tablet' ? '⚙ Tablet กลาง' : role === 'nurse' && me ? `⚙ ${me}` : '⚙';
+
+  const p = $('#pushPill');
+  const showPush = role === 'nurse' && store && store.mode === 'firebase';
+  p.style.display = showPush ? '' : 'none';
+  if(showPush){
+    const pm = { on:['🔔 แจ้งเตือนมือถือ ✓','ok'], default:['🔕 แตะเพื่อเปิดแจ้งเตือน','bad'], 'ios-install':['🔕 ต้องติดตั้งแอปก่อน','bad'],
+                 denied:['🔕 แจ้งเตือนถูกบล็อก','bad'], unsupported:['🔕 ไม่รองรับแจ้งเตือน','bad'], error:['⚠ แจ้งเตือนผิดพลาด','bad'], off:['🔕 ปิด','warn'] }[pushState] || ['🔕','bad'];
+    p.textContent = pm[0]; p.className = 'pill ' + pm[1];
+  }
+  renderHeartbeat();
+}
+function renderHeartbeat(){
+  const h = $('#hbPill');
+  const show = role === 'tablet' && store && store.mode === 'firebase';
+  h.style.display = show ? '' : 'none';
+  if(!show) return;
+  if(heartbeat === undefined){ h.textContent = 'ระบบแจ้งมือถือ: …'; h.className = 'pill'; return; }
+  const age = heartbeat && heartbeat.at ? Date.now() - heartbeat.at : Infinity;
+  if(age > HEARTBEAT_STALE_MIN * 60000){ h.textContent = '⚠ ระบบแจ้งมือถือไม่ทำงาน'; h.className = 'pill bad'; }
+  else { h.textContent = 'ระบบแจ้งมือถือ ✓'; h.className = 'pill ok'; }
+}
+
+function render(){
+  renderHeader();
+  if(!role || (role === 'nurse' && !me)){ renderSetup(); return; }
+  if(role === 'nurse' && !$('#entry')){
+    $('#app').innerHTML = `<div id="pushBox"></div><div id="dueTop"></div><div class="panel" id="entry"></div><div id="listWrap"></div>`;
+    buildForm($('#entry'), false);
+  }
+  if(role === 'tablet' && !$('#board')){
+    $('#app').innerHTML = `<div id="board"></div>`;
+  }
+  renderMain();
+}
+
+function renderSetup(){
+  if(!role){
+    $('#app').innerHTML = `<div class="panel"><h2>ใช้เครื่องนี้เป็น</h2>
+      <div class="roles"><button class="btn" data-act="role" data-v="nurse">📱<br>มือถือพยาบาล</button>
+      <button class="btn" data-act="role" data-v="tablet">🖥<br>Tablet กลาง</button></div>
+      <p class="note">เปลี่ยนภายหลังได้ที่ปุ่ม ⚙</p></div>`;
+    return;
+  }
+  $('#app').innerHTML = `<div class="panel"><h2>ชื่อของคุณ</h2>
+    <input type="text" id="nameIn" maxlength="30" placeholder="เช่น พลอย" value="${esc(me)}" enterkeyhint="done">
+    <p class="note">ใช้แสดงว่าใครลงรายการ และส่งแจ้งเตือนกลับมาที่มือถือเครื่องนี้</p>
+    <button class="btn big" data-act="saveName">เริ่มใช้งาน</button>
+    <button class="btn ghost" data-act="role" data-v="">← เปลี่ยนประเภทเครื่อง</button></div>`;
+  setTimeout(() => $('#nameIn')?.focus(), 50);
+}
+
+function renderMain(){
+  const now = Date.now();
+  lastSig = sigOf(now);
+  if(role === 'nurse') renderNurse(now);
+  else if(role === 'tablet') renderBoard(now);
+}
+
+function renderNurse(now){
+  const pb = $('#pushBox');
+  if(pb){
+    let html = '';
+    if(store && store.mode === 'firebase' && pushState !== 'on'){
+      const msg = pushState === 'ios-install' ? 'iPhone ต้อง "Add to Home Screen" ก่อน ถึงจะรับแจ้งเตือนได้'
+        : pushState === 'denied' ? 'การแจ้งเตือนถูกบล็อก ไปเปิดใน Settings ของมือถือ'
+        : pushState === 'unsupported' ? 'เบราว์เซอร์นี้รับแจ้งเตือนไม่ได้ (Android ใช้ Chrome)'
+        : 'เปิดแจ้งเตือน เพื่อให้มือถือเด้งเมื่อครบเวลา แม้ล็อกจอหรือสลับไปทำอย่างอื่น';
+      html = `<div class="panel hint" style="max-width:640px"><b>🔕 มือถือเครื่องนี้ยังไม่รับแจ้งเตือน</b><br>${msg}
+        ${pushState !== 'denied' && pushState !== 'unsupported' ? '<button class="btn big" data-act="push">เปิดแจ้งเตือน</button>' : ''}</div>`;
+    }
+    if(pb.innerHTML !== html) pb.innerHTML = html;
+  }
+  const lw = $('#listWrap'); if(!lw) return;
+  // รายการของฉันที่ครบเวลา → ขึ้นบนสุดเหนือฟอร์ม
+  const dueMine = sorted(items.filter(it => isMine(it) && st(it, now) === 'due'), now);
+  $('#dueTop').innerHTML = dueMine.length
+    ? `<div style="max-width:640px;margin:0 auto 12px"><div class="grid">${dueMine.map(x => card(x, now)).join('')}</div></div>` : '';
+  const dueIds = new Set(dueMine.map(x => x.it.id));
+  const list = sorted((showAll ? items : items.filter(isMine)).filter(it => !dueIds.has(it.id)), now);
+  lw.innerHTML = `<div class="sect"><h3>${showAll ? 'ทั้งหมดใน ER' : 'รายการของฉัน'} (${list.length})</h3>
+      <button class="btn sm" data-act="toggleAll">${showAll ? 'ดูของฉัน' : 'ดูทั้งหมด'}</button></div>
+    <div style="max-width:640px;margin:0 auto">${list.length ? `<div class="grid">${list.map(x => card(x, now)).join('')}</div>`
+      : `<div class="empty">${loaded ? 'ยังไม่มีรายการ' : 'กำลังโหลด…'}</div>`}</div>`;
+}
+
+function renderBoard(now){
+  const list = sorted(items, now);
+  const due = list.filter(x => x.s === 'due').length;
+  $('#board').innerHTML = `<div class="sum">
+      <div><b>${list.filter(x => x.s !== 'checked').length}</b><small>กำลังให้</small></div>
+      <div class="s-due" style="color:${due ? 'var(--due)' : 'inherit'}"><b>${due}</b><small>ครบเวลา</small></div>
+      <button class="btn add" data-act="addEntry">+ ลงรายการ</button></div>
+    ${list.length ? `<div class="grid">${list.map(x => card(x, now)).join('')}</div>` : `<div class="empty">${loaded ? 'ไม่มีรายการ' : 'กำลังโหลด…'}</div>`}`;
+}
+
+function card({ it, s }, now){
+  const armed = armedDel && armedDel.id === it.id && armedDel.until > now;
+  const delBtn = cls => `<button class="btn ${cls} ${armed ? 'armed' : ''}" data-act="del" data-id="${it.id}">${armed ? 'แตะอีกครั้งเพื่อลบ' : cls.includes('sm') ? 'ลบ' : '🗑 ลบ (ครบแล้ว)'}</button>`;
+  let btns;
+  if(s === 'due') btns = `<button class="btn primary" data-act="check" data-id="${it.id}">✓ Check แล้ว</button>`;
+  else if(s === 'checked') btns = `<button class="btn" data-act="add" data-id="${it.id}">+ เพิ่มเวลา</button>${delBtn('danger')}`;
+  else btns = `<button class="btn sm" data-act="add" data-id="${it.id}">+ เวลา</button>${delBtn('sm ghost')}`;
+  return `<div class="card s-${s} ${s === 'due' ? 'flash' : ''} ${highlight === it.id ? 'hl' : ''}" id="c-${it.id}">
+    <div class="top"><div class="pt">${esc(it.patient)}</div><span class="badge">${LBL[s]}</span></div>
+    <div class="fl">${esc(it.fluid)} ${esc(it.volume)} ml</div>
+    <div class="tt" data-cd="${it.id}">${ttText(it, s, now)}</div>
+    <div class="meta">ลงโดย ${esc(it.createdBy)} • เริ่ม ${fmtTime(it.startAt)}${it.pushCount ? ` • แจ้งมือถือ ${it.pushCount} ครั้ง` : ''}</div>
+    <div class="row">${btns}<button class="btn sm ghost" data-act="detail" data-id="${it.id}">ⓘ</button></div></div>`;
+}
+
+/* ---------------- entry form ---------------- */
+function buildForm(box, withNurse){
+  sel = { fluid:'', vol:'', mins:'', nurse:'' };
+  const chips = (g, arr, unit = '') => `<div class="chips">${arr.map(v => `<button type="button" class="chip" data-act="pick" data-g="${g}" data-v="${v}">${v}${unit}</button>`).join('')}
+    <button type="button" class="chip" data-act="pick" data-g="${g}" data-v="other">อื่นๆ</button></div>`;
+  const recent = [...new Set([...items.map(i => i.createdBy), ...(LS.get('ivl_recentNurses', '').split('|'))].filter(Boolean))].slice(0, 12);
+  box.innerHTML = `<form id="entryForm" autocomplete="off">
+    ${withNurse ? `<label class="l">ผู้ลงรายการ (พยาบาล)</label>
+      ${recent.length ? `<div class="chips" style="margin-bottom:8px">${recent.map(n => `<button type="button" class="chip" data-act="pickNurse" data-v="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+      <input type="text" name="nurse" maxlength="30" placeholder="ชื่อพยาบาล">` : ''}
+    <label class="l">ชื่อผู้ป่วย</label>
+    <input type="text" name="patient" maxlength="30" placeholder="ชื่อ (ไม่ต้องใส่นามสกุล)" enterkeyhint="done">
+    <label class="l">สารน้ำ</label>${chips('fluid', FLUIDS)}
+    <input type="text" class="other" name="fluidOther" maxlength="20" placeholder="ระบุชนิดสารน้ำ" hidden>
+    <label class="l">ปริมาตร (ml)</label>${chips('vol', VOLUMES)}
+    <input type="number" class="other" name="volOther" inputmode="numeric" min="1" max="5000" placeholder="ml" hidden>
+    <label class="l">ครบในอีก (นาที)</label>${chips('mins', MINUTES)}
+    <input type="number" class="other" name="minsOther" inputmode="numeric" min="1" max="720" placeholder="นาที" hidden>
+    <div class="calc" id="calc">ครบเวลา --:--</div>
+    <button class="btn big" type="submit">ลงรายการ</button></form>`;
+  const f = box.querySelector('#entryForm');
+  f.addEventListener('input', updateCalc);
+  f.addEventListener('submit', submitEntry);
+  updateCalc();
+}
+function formVals(){
+  const f = $('#entryForm'); if(!f) return null;
+  const pickVal = (g, other) => sel[g] === 'other' ? f[other].value.trim() : sel[g];
+  return {
+    f, patient: f.patient.value.trim(), nurse: f.nurse ? f.nurse.value.trim() : me,
+    fluid: pickVal('fluid', 'fluidOther'), vol: Number(pickVal('vol', 'volOther')), mins: Number(pickVal('mins', 'minsOther'))
+  };
+}
+function updateCalc(){
+  const v = formVals(); if(!v) return;
+  v.f.querySelectorAll('[data-act=pick]').forEach(b => b.classList.toggle('on', sel[b.dataset.g] === b.dataset.v));
+  v.f.querySelectorAll('[data-act=pickNurse]').forEach(b => b.classList.toggle('on', v.f.nurse && v.f.nurse.value === b.dataset.v));
+  v.f.fluidOther.hidden = sel.fluid !== 'other';
+  v.f.volOther.hidden = sel.vol !== 'other';
+  v.f.minsOther.hidden = sel.mins !== 'other';
+  $('#calc').textContent = v.mins > 0 ? `ครบเวลา ${fmtTime(Date.now() + v.mins * 60000)} (อีก ${v.mins} นาที)` : 'ครบเวลา --:--';
+}
+async function submitEntry(e){
+  e.preventDefault();
+  const v = formVals();
+  if(!v.nurse) return toast('ใส่ชื่อพยาบาลผู้ลง');
+  if(!v.patient) return toast('ใส่ชื่อผู้ป่วย');
+  if(!v.fluid) return toast('เลือกสารน้ำ');
+  if(!(v.vol > 0 && v.vol <= 5000)) return toast('เลือก/ใส่ปริมาตร ml');
+  if(!(v.mins > 0 && v.mins <= 720)) return toast('เลือก/ใส่เวลา (1–720 นาที)');
+  const now = Date.now(), dueAt = now + Math.round(v.mins * 60000);
+  const it = {
+    patient: v.patient, fluid: v.fluid, volume: v.vol, minutes: v.mins,
+    startAt: now, dueAt, createdAt: now, createdBy: v.nurse,
+    createdByDevice: role === 'nurse' ? deviceId : '',
+    status: 'active', checkedAt: null, checkedBy: null, lastPushAt: 0, pushCount: 0,
+    log: [{ t: now, by: v.nurse, a: `ลงรายการ ${v.fluid} ${v.vol} ml ครบ ${fmtTime(dueAt)}` }]
+  };
+  try{
+    await store.add(it);
+    if(role === 'tablet'){
+      const r = [v.nurse, ...LS.get('ivl_recentNurses', '').split('|')].filter(Boolean);
+      LS.set('ivl_recentNurses', [...new Set(r)].slice(0, 12).join('|'));
+      closeModal();
+    }else{
+      v.f.reset(); sel = { fluid:'', vol:'', mins:'', nurse:'' }; updateCalc();
+      document.activeElement?.blur();
+    }
+    toast(`ลงแล้ว: ${v.patient} ครบ ${fmtTime(dueAt)}`);
+  }catch(err){ console.error(err); toast('บันทึกไม่สำเร็จ — ตรวจการเชื่อมต่อ'); }
+}
+
+/* ---------------- actions ---------------- */
+const actor = () => role === 'tablet' ? 'Tablet กลาง' : me;
+async function upd(id, patch, a){
+  const now = Date.now();
+  try{ await store.update(id, patch, { t: now, by: actor(), a }); return true; }
+  catch(err){ console.error(err); toast('บันทึกไม่สำเร็จ — ตรวจการเชื่อมต่อ'); return false; }
+}
+async function doCheck(id){
+  const it = items.find(x => x.id === id);
+  if(!it){ toast('รายการนี้ถูกลบไปแล้ว'); return; }
+  if(it.checkedAt){ toast(`${it.checkedBy || 'มีคน'} Check ไปแล้ว`); return; }
+  if(await upd(id, { checkedAt: Date.now(), checkedBy: actor() }, 'Check แล้ว')) toast('Check แล้ว — ลบ หรือ เพิ่มเวลา');
+}
+async function addTime(id, m){
+  const it = items.find(x => x.id === id); if(!it) return;
+  if(!(m > 0 && m <= 720)){ toast('ใส่ 1–720 นาที'); return; }
+  const now = Date.now();
+  const base = (it.checkedAt || it.dueAt <= now) ? now : it.dueAt;
+  const dueAt = base + Math.round(m * 60000);
+  if(await upd(id, { dueAt, checkedAt: null, checkedBy: null, lastPushAt: 0, pushCount: 0 }, `เพิ่มเวลา +${m} นาที → ครบ ${fmtTime(dueAt)}`)){
+    closeModal(); toast(`ครบเวลาใหม่ ${fmtTime(dueAt)}`);
+  }
+}
+async function doDelete(id){
+  if(!(armedDel && armedDel.id === id && armedDel.until > Date.now())){
+    armedDel = { id, until: Date.now() + 3000 }; renderMain(); return;
+  }
+  armedDel = null;
+  if(await upd(id, { status: 'deleted', deletedAt: Date.now(), deletedBy: actor() }, 'ลบรายการ')) toast('ลบแล้ว');
+}
+
+function addModal(id){
+  const it = items.find(x => x.id === id); if(!it) return;
+  openModal(`<h2>เพิ่มเวลา — ${esc(it.patient)}</h2>
+    <p class="note">${it.checkedAt || it.dueAt <= Date.now() ? 'นับใหม่จากตอนนี้' : `ต่อจากเวลาครบเดิม ${fmtTime(it.dueAt)}`}</p>
+    <div class="chips">${ADD_MINS.map(m => `<button class="chip" data-act="addGo" data-id="${id}" data-m="${m}">+${m} นาที</button>`).join('')}</div>
+    <div class="row" style="margin-top:12px"><input type="number" id="addCustom" inputmode="numeric" min="1" max="720" placeholder="ระบุนาที" style="flex:1">
+      <button class="btn" data-act="addCustom" data-id="${id}">เพิ่ม</button></div>
+    <button class="btn ghost" data-act="close" style="margin-top:10px;width:100%">ยกเลิก</button>`);
+}
+function detailModal(id){
+  const it = items.find(x => x.id === id); if(!it) return;
+  const log = (it.log || []).slice().sort((a, b) => a.t - b.t).map(l => `<div class="log">${fmtTime(l.t)} • ${esc(l.by)} • ${esc(l.a)}</div>`).join('');
+  openModal(`<h2>${esc(it.patient)} — ${esc(it.fluid)} ${esc(it.volume)} ml</h2>
+    <p>เริ่ม ${fmtTime(it.startAt)} • ครบ ${fmtTime(it.dueAt)} • ลงโดย ${esc(it.createdBy)}${it.pushCount ? `<br>ส่งแจ้งเตือนมือถือรอบนี้ ${it.pushCount} ครั้ง` : ''}</p>
+    ${log}<button class="btn big" data-act="close">ปิด</button>`);
+}
+function settingsModal(){
+  const demo = store && store.mode === 'local';
+  openModal(`<h2>ตั้งค่า</h2>
+    <p>เครื่องนี้: <b>${role === 'tablet' ? 'Tablet กลาง' : role === 'nurse' ? 'มือถือพยาบาล' : '-'}</b>${role === 'nurse' ? ` • ชื่อ <b>${esc(me)}</b>` : ''}</p>
+    <div class="row">
+      ${role === 'nurse' ? '<button class="btn" data-act="changeName">เปลี่ยนชื่อ</button>' : ''}
+      <button class="btn" data-act="changeRole">เปลี่ยนประเภทเครื่อง</button>
+      <button class="btn" data-act="testSound">ทดสอบเสียง</button>
+      ${role && !demo ? `<button class="btn" data-act="push">เปิด/รีเฟรชแจ้งเตือน${role === 'tablet' ? ' (สำรอง)' : ''}</button>` : ''}
+    </div>
+    ${demo ? `<p class="note" style="margin-top:14px">โหมดทดลอง: ข้อมูลอยู่ในเบราว์เซอร์นี้เท่านั้น เปิดอีกแท็บแล้วตั้งเป็นอีกประเภทเพื่อจำลองได้</p>
+      <div class="row"><button class="btn" data-act="seed">ใส่ข้อมูลตัวอย่าง</button><button class="btn danger" data-act="clearDemo">ล้างข้อมูลทดลอง</button></div>` : ''}
+    <button class="btn ghost" data-act="close" style="margin-top:12px;width:100%">ปิด</button>`);
+}
+function openModal(html){ $('#mb').innerHTML = html; $('#modal').classList.add('show'); }
+function closeModal(){ $('#modal').classList.remove('show'); $('#mb').innerHTML = ''; }
+
+async function seed(){
+  const now = Date.now();
+  const mk = (patient, fluid, volume, startAgo, mins, by, extra = {}) => ({
+    patient, fluid, volume, minutes: mins, startAt: now - startAgo * 60000, dueAt: now - startAgo * 60000 + mins * 60000,
+    createdAt: now, createdBy: by, createdByDevice: '', status: 'active', checkedAt: null, checkedBy: null, lastPushAt: 0, pushCount: 0,
+    log: [{ t: now, by, a: 'ข้อมูลตัวอย่าง' }], ...extra });
+  await store.add(mk('สมชาย', 'NSS', 500, 31, 30, me || 'ตัวอย่าง'));
+  await store.add(mk('มาลี', 'RL', 1000, 50, 60, 'แพรว'));
+  await store.add(mk('บุญมี', 'NSS', 250, 12, 15, 'แพรว'));
+  await store.add(mk('ประยูร', 'Acetar', 500, 40, 30, 'นก', { checkedAt: now - 120000, checkedBy: 'นก' }));
+  closeModal(); toast('ใส่ข้อมูลตัวอย่างแล้ว');
+}
+
+document.addEventListener('click', e => {
+  if(e.target.id === 'modal'){ closeModal(); return; }
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const { act, id } = b.dataset;
+  switch(act){
+    case 'role':
+      role = b.dataset.v; role ? LS.set('ivl_role', role) : LS.del('ivl_role');
+      $('#app').innerHTML = ''; render(); if(role) refreshPush(); break;
+    case 'saveName': {
+      const v = $('#nameIn').value.trim(); if(!v) return toast('ใส่ชื่อ');
+      me = v; LS.set('ivl_name', me); $('#app').innerHTML = ''; render(); refreshPush(); break;
+    }
+    case 'changeName': closeModal(); me = ''; $('#app').innerHTML = ''; render(); break;
+    case 'changeRole': closeModal(); role = ''; LS.del('ivl_role'); $('#app').innerHTML = ''; render(); break;
+    case 'settings': settingsModal(); break;
+    case 'close': closeModal(); break;
+    case 'push': enablePushClick(); break;
+    case 'testSound': unlockAudio(); beep(); break;
+    case 'pick': sel[b.dataset.g] = b.dataset.v; updateCalc();
+      if(b.dataset.v === 'other'){ const f = $('#entryForm'); ({ fluid: f.fluidOther, vol: f.volOther, mins: f.minsOther })[b.dataset.g].focus(); }
+      break;
+    case 'pickNurse': { const f = $('#entryForm'); f.nurse.value = b.dataset.v; updateCalc(); break; }
+    case 'addEntry': openModal(`<h2>ลงรายการ</h2><div id="mEntry"></div><button class="btn ghost" data-act="close" style="width:100%;margin-top:8px">ยกเลิก</button>`);
+      buildForm($('#mEntry'), true); break;
+    case 'toggleAll': showAll = !showAll; LS.set('ivl_showAll', showAll ? '1' : '0'); renderMain(); break;
+    case 'check': doCheck(id); break;
+    case 'add': addModal(id); break;
+    case 'addGo': addTime(id, Number(b.dataset.m)); break;
+    case 'addCustom': addTime(id, Number($('#addCustom').value)); break;
+    case 'del': doDelete(id); break;
+    case 'detail': detailModal(id); break;
+    case 'gotoDue': { const el = document.querySelector('.s-due'); el?.scrollIntoView({ behavior:'smooth', block:'center' }); break; }
+    case 'seed': seed(); break;
+    case 'clearDemo': store.clear?.(); closeModal(); toast('ล้างแล้ว'); break;
+  }
+});
+
+/* ---------------- sound ---------------- */
+function unlockAudio(){
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if(actx.state === 'suspended') actx.resume();
+    soundOn = true; $('#unlock').style.display = 'none';
+    keepAwake();
+  }catch(e){ console.warn('audio', e); }
+}
+document.addEventListener('pointerdown', () => { if(!soundOn || (actx && actx.state !== 'running')) unlockAudio(); });
+function beep(){
+  if(!actx) return;
+  if(actx.state === 'suspended') actx.resume();
+  const t0 = actx.currentTime;
+  [[880, 0], [880, .28], [1175, .56]].forEach(([f, s]) => {
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = 'square'; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t0 + s);
+    g.gain.exponentialRampToValueAtTime(0.35, t0 + s + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + s + 0.2);
+    o.connect(g).connect(actx.destination); o.start(t0 + s); o.stop(t0 + s + 0.25);
+  });
+}
+async function keepAwake(){
+  if(role !== 'tablet') return;
+  try{ if('wakeLock' in navigator && document.visibilityState === 'visible' && !wakeLock){
+    wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => wakeLock = null); } }catch{}
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible'){ keepAwake(); tick(); } });
+
+/* ---------------- tick ---------------- */
+function tick(){
+  const now = Date.now();
+  if(armedDel && armedDel.until <= now) armedDel = null;
+  if(sigOf(now) !== lastSig) renderMain();
+  else document.querySelectorAll('[data-cd]').forEach(el => {
+    const it = items.find(x => x.id === el.dataset.cd); if(it) el.innerHTML = ttText(it, st(it, now), now);
+  });
+  if($('#entryForm') && !$('#entryForm').contains(document.activeElement)) updateCalc();
+  renderHeartbeat();
+
+  const alarming = role ? items.filter(it => st(it, now) === 'due' && (role === 'tablet' || isMine(it))) : [];
+  const bar = $('#banner');
+  if(alarming.length){
+    bar.style.display = 'block';
+    bar.textContent = `⏰ ครบเวลา: ${alarming.map(it => it.patient).join(', ')} — กด Check`;
+    document.title = `(${alarming.length}) ครบเวลา — IV Load`;
+    if(now - lastBeep >= BEEP_EVERY_SEC * 1000){
+      lastBeep = now; beep(); try{ navigator.vibrate?.([400, 150, 400]); }catch{}
+    }
+  }else{
+    bar.style.display = 'none'; document.title = 'IV Load Alert';
+  }
+  $('#unlock').style.display = role && !soundOn && !alarming.length ? 'block' : 'none';
+  if(role && !soundOn && alarming.length) bar.textContent += ' (แตะหน้าจอเพื่อเปิดเสียง)';
+}
+
+/* ---------------- deep links from notifications ---------------- */
+function applyPending(){
+  if(!loaded) return;
+  if(pendingCheck){ const id = pendingCheck; pendingCheck = null; doCheck(id); highlight = id; }
+  if(pendingFocus){ highlight = pendingFocus; pendingFocus = null; }
+  if(highlight){
+    if(role === 'nurse' && !showAll && !items.some(x => x.id === highlight && isMine(x))){ showAll = true; }
+    renderMain();
+    const h = highlight;
+    setTimeout(() => document.getElementById('c-' + h)?.scrollIntoView({ behavior:'smooth', block:'center' }), 80);
+    setTimeout(() => { if(highlight === h){ highlight = null; renderMain(); } }, 8000);
+  }
+}
+{
+  const q = new URLSearchParams(location.search);
+  pendingCheck = q.get('check'); pendingFocus = q.get('focus');
+  if(pendingCheck || pendingFocus) history.replaceState(null, '', location.pathname);
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.addEventListener('message', e => {
+    const m = e.data || {};
+    if(m.type === 'check') pendingCheck = m.id; else if(m.type === 'focus') pendingFocus = m.id;
+    applyPending();
+  });
+}
+
+/* ---------------- init ---------------- */
+(async function init(){
+  render();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js', { scope:'./' }).catch(e => console.warn('sw', e));
+  try{ store = FIREBASE_CONFIG ? await firebaseStore() : localStore(); }
+  catch(err){ console.error(err); setConn('error'); toast('เชื่อมต่อไม่ได้ — ตรวจอินเทอร์เน็ตแล้วรีเฟรช'); return; }
+  store.subscribe(list => { items = list; loaded = true; renderMain(); applyPending(); });
+  store.subscribeMeta(h => { heartbeat = h; renderHeartbeat(); });
+  if(role) refreshPush();
+  render();
+  setInterval(tick, 1000);
+  setInterval(() => { if(role && pushState === 'on') refreshPush(); }, 6 * 3600 * 1000); // รีเฟรช token เป็นระยะ
+})();
+</script>
+</body>
+</html>
