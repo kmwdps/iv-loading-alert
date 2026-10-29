@@ -588,14 +588,19 @@ function beep(){
   if(!actx) return;
   if(actx.state === 'suspended') actx.resume();
   const t0 = actx.currentTime;
-  [[880, 0], [880, .28], [1175, .56]].forEach(([f, s]) => {
+  const comp = actx.createDynamicsCompressor();
+  comp.connect(actx.destination);
+  // ไซเรนสลับสูง-ต่ำ 6 จังหวะ ~1.8 วินาที
+  for(let i = 0; i < 6; i++){
+    const s = i * 0.3, f = i % 2 ? 1400 : 950;
     const o = actx.createOscillator(), g = actx.createGain();
     o.type = 'square'; o.frequency.value = f;
     g.gain.setValueAtTime(0.0001, t0 + s);
-    g.gain.exponentialRampToValueAtTime(0.35, t0 + s + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + s + 0.2);
-    o.connect(g).connect(actx.destination); o.start(t0 + s); o.stop(t0 + s + 0.25);
-  });
+    g.gain.exponentialRampToValueAtTime(1.0, t0 + s + 0.02);
+    g.gain.setValueAtTime(1.0, t0 + s + 0.24);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + s + 0.28);
+    o.connect(g).connect(comp); o.start(t0 + s); o.stop(t0 + s + 0.3);
+  }
 }
 async function keepAwake(){
   if(role !== 'tablet') return;
