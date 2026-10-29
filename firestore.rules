@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // รายการ IV load: อ่าน/เขียนได้เมื่อ sign-in (anonymous) แล้ว
+    match /ivloads/{id} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.patient is string && request.resource.data.patient.size() <= 30
+        && request.resource.data.dueAt is int
+        && request.resource.data.status == 'active';
+      allow update: if request.auth != null;
+      allow delete: if false;   // ลบจริงทำโดยสคริปต์เท่านั้น (client ใช้ status = 'deleted')
+    }
+
+    // FCM token ของแต่ละเครื่อง: เขียนได้ แต่อ่านไม่ได้จากหน้าเว็บ
+    match /devices/{deviceId} {
+      allow create, update: if request.auth != null;
+      allow read, delete: if false;
+    }
+
+    // สถานะสคริปต์ (heartbeat): อ่านอย่างเดียว
+    match /meta/{doc} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+  }
+}
